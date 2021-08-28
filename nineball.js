@@ -16,12 +16,13 @@ bot.on("messageCreate", async msg => {
     
 	// checks public messages against regex filters
 	if (msg.channel.id == logsChannel || msg.channel.id == botChannel) return
-	if (msg.content.match(patterns)) {
+	
+	let result = patterns.findIndex(pattern => pattern.test(msg.content));
+	
+	if (result > -1) {
 		const guild = msg.channel.guild;
 		// checks if the ID is from The Raven
 		if (msg.author.id == storm) {	
-			let result = patterns.findIndex(pattern => pattern.test(message.content));
-			
 			guild.channels.get(logsChannel).createMessage({
 				embed: {
 					"description": `Testing successful. Matched result: \n${result}`, // for testing filters
@@ -40,8 +41,6 @@ bot.on("messageCreate", async msg => {
 			});
 		}
 		else {
-			let result = patterns.findIndex(pattern => pattern.test(message.content));
-			
 			msg.member.ban({ // ban the scammer
 				"reason": "scammer"
 			})
