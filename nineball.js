@@ -17,7 +17,7 @@ bot.on("messageCreate", async msg => {
 	// checks public messages against regex filters
 	if (msg.channel.id == logsChannel || msg.channel.id == botChannel) return
 	
-	let result = patterns.findIndex(pattern => pattern.test(msg.content));
+	let result = patterns.findIndex(pattern => pattern.test(msg.cleanContent));
 	
 	if (result > -1) {
 		const guild = msg.channel.guild;
@@ -41,9 +41,7 @@ bot.on("messageCreate", async msg => {
 			});
 		}
 		else {
-			msg.member.ban({ // ban the scammer
-				"reason": "scammer"
-			})
+			msg.member.ban(0, "scammer") // ban the scammer 
 			
 			guild.channels.get(logsChannel).createMessage({ // create a message regarding the details
 				embed: {
@@ -61,7 +59,7 @@ bot.on("messageCreate", async msg => {
 					]
 				}
 			});
-			msg.message.delete(); // delete offending message. it's put after the log message to avoid any potential errors.
+			msg.delete(); // delete offending message. it's put after the log message to avoid any potential errors.
 	    }
 	};
 });
