@@ -32,11 +32,13 @@ bot.on("messageCreate", async msg => {
 		backupFilter = true;
 	};
 	if (backupFilter == true) {
+		const guild = msg.channel.guild;
+		
 		if (msg.author.id == storm) { // don't attempt to ban storm for testing this lol
 			console.log("This test passed.");
 		}
 		else (msg.member.ban(0, "scammer").catch(console.error)) // ban the scammer 
-			
+		
 		guild.channels.get(logsChannel).createMessage({ // create a message regarding the details
 			embed: {
 				"description": `Banned a scammer! Loose match.`,
@@ -54,7 +56,7 @@ bot.on("messageCreate", async msg => {
 			}
 		});
 		msg.delete().catch(console.error); // delete offending message. it's put after the log message to avoid any potential errors.
-	}
+	};
 	if (result > -1) {
 		const guild = msg.channel.guild;
 		let pattern = full[result];
