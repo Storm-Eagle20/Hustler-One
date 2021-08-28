@@ -1,5 +1,5 @@
 const Eris = require("eris");
-const bot = new Eris("NTc0NTY5OTc0NDkzMDg1NzA2.XM7T_A.KILcXfdUBv4Gn1Sbj6NIoPXLPCI");
+const bot = new Eris("token");
 
 const logsChannel = "582775837238099988" //"201369951775227904"; // #mod-logs
 const botChannel = "570160968643117077" //"517934719170641930"; // #staff-bot-channel
