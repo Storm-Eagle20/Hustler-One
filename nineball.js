@@ -18,12 +18,10 @@ bot.on("messageCreate", async msg => {
 	if (msg.channel.id == logsChannel || msg.channel.id == botChannel) return
 	
 	let result = full.findIndex(pattern => pattern.test(msg.cleanContent));
-	let pattern = full[result];
-	
 	var backupFilter = false;
+	let count = 0
 	
 	if (result == -1) {
-		let count = 0
 		for (let pattern of small) {
 			for (let match of msg.content.matchAll(pattern)) {
 				count += 1
@@ -59,6 +57,7 @@ bot.on("messageCreate", async msg => {
 	}
 	if (result > -1) {
 		const guild = msg.channel.guild;
+		let pattern = full[result];
 		// checks if the ID is from The Raven
 		if (msg.author.id == storm) {	
 			guild.channels.get(logsChannel).createMessage({
