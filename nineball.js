@@ -1,8 +1,8 @@
 const Eris = require("eris");
-const bot = new Eris("token");
+const bot = new Eris("NTc0NTY5OTc0NDkzMDg1NzA2.XM7T_A.KILcXfdUBv4Gn1Sbj6NIoPXLPCI");
 
-const logsChannel = "201369951775227904"; // #mod-logs
-const botChannel = "517934719170641930"; // #staff-bot-channel
+const logsChannel = "582775837238099988" //"201369951775227904"; // #mod-logs
+const botChannel = "570160968643117077" //"517934719170641930"; // #staff-bot-channel
 
 const storm = "160648230781059073"; // @Storm Eagle
 
@@ -64,6 +64,7 @@ bot.on("messageCreate", async msg => {
 			});
 			msg.message.delete(); // delete offending message. it's put after the log message to avoid any potential errors.
 	    }
+	};
 });
 
 bot.connect();
