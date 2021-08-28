@@ -19,7 +19,7 @@ bot.on("messageCreate", async msg => {
 		const guild = msg.channel.guild;
 		// checks if the ID is from The Raven
 		if msg.author.id == storm {	
-			let result = patterns.findIndex(msg.content);
+			let result = patterns.findIndex(pattern => pattern.test(message.content));
 			
 			guild.channels.get(logsChannel).createMessage({
 				embed: {
@@ -39,7 +39,7 @@ bot.on("messageCreate", async msg => {
 			});
 		}
 		else {
-			let result = patterns.findIndex(msg.content);
+			let result = patterns.findIndex(pattern => pattern.test(message.content));
 			
 			msg.member.ban({ // ban the scammer
 				"reason": "scammer"
