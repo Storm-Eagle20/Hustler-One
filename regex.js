@@ -1,4 +1,18 @@
-const regexFilters = [
+const small = [
+	/free/g,
+	/[Nn]itro(?! [Mm]an)/g,
+	/[Cc][Ss]:? ?[Gg][Oo]/g,
+	/trade/g,
+	/skins/g,
+	/knife/g,
+	/\S+\.[^.]+\/\S*/g,
+	/[Ss]team/g,
+	/STEAM/g,
+	/@everyone/g,
+	/[Aa]irdrop/g
+];
+
+const full = [
 /* 0*/      /([Cc][Ss]:? ?[Gg][Oo]|skins).{50,}(profiles|token)/,
 /* 1*/      /[Dd]on\u0027t be (greedy|modest) and take few/,
 /* 2*/      /[Cc][Ss]:? ?[Gg][Oo].{3,}(giving away|give everything|trade)/,
@@ -65,4 +79,7 @@ const regexFilters = [
 /*63*/      /([Nn]itro(?! [Mm]an)|trade|skin|[Cc][Ss]:? ?[Gg][Oo]).+hurry up.+https?:\/\//
 ];
 
-module.exports = regexFilters;
+module.exports = {
+    small,
+    full
+}
