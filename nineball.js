@@ -15,10 +15,11 @@ bot.on("messageCreate", async msg => {
     if (!msg.channel.guild) return;
     
 	// checks public messages against regex filters
-	if ((msg.channel.id != logsChannel || botChannel) && (msg.content.match(patterns))){
+	if (msg.channel.id == logsChannel || msg.channel.id == botChannel) return
+	if (msg.content.match(patterns)) {
 		const guild = msg.channel.guild;
 		// checks if the ID is from The Raven
-		if msg.author.id == storm {	
+		if (msg.author.id == storm) {	
 			let result = patterns.findIndex(pattern => pattern.test(message.content));
 			
 			guild.channels.get(logsChannel).createMessage({
@@ -61,7 +62,7 @@ bot.on("messageCreate", async msg => {
 					]
 				}
 			});
-			msg.message.delete{}; // delete offending message. it's put after the log message to avoid any potential errors.
+			msg.message.delete(); // delete offending message. it's put after the log message to avoid any potential errors.
 	    }
 });
 
