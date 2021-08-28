@@ -18,7 +18,7 @@ bot.on("messageCreate", async msg => {
 	if (msg.channel.id == logsChannel || msg.channel.id == botChannel) return
 	
 	let result = full.findIndex(pattern => pattern.test(msg.cleanContent));
-	var pattern = full[result];
+	let pattern = full[result];
 	
 	var backupFilter = false;
 	
