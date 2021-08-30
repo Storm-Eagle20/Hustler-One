@@ -2,8 +2,11 @@ const fs = require("fs");
 const Eris = require("eris");
 const bot = new Eris("token");
 
-const logsChannel = "201369951775227904" //"201369951775227904"; // #mod-logs
-const botChannel = "517934719170641930" //"517934719170641930"; // #staff-bot-channel
+const logChannels = {
+	"95214576571121664": "201369951775227904", //mega man server ID
+	"508647842592587776": "508655085648216075", //fanworks server ID
+	"176362550311518208": "363004532311064578" //ps homebrew server ID
+};
 
 const storm = "160648230781059073"; // @Storm Eagle
 const update = /^9b/ //update command
@@ -15,10 +18,9 @@ const {small, full} = require("./regex.js"); // grab the regex filters
 bot.on("messageCreate", async msg => {
     if (msg.author.bot) return;
     if (!msg.channel.guild) return;
-    
-	if (msg.channel.id == logsChannel || msg.channel.id == botChannel) return
 	
 	if (msg.author.id == storm && msg.content.match(update)) {
+		let channelId = msg.channel.id;
 		let newRegex = msg.content.replace("9b ","");
 		full.push(newRegex);
 		
@@ -47,6 +49,12 @@ bot.on("messageCreate", async msg => {
 		});
 		process.exit(0);
 	};
+	const guild = msg.channel.guild;
+
+	let server = msg.guild;
+	let logId = logChannels[guild.id]
+	if (!logId) return  // not in a configured server
+	let logChannel = guild.channels.get(logId)
 	
 	let result = full.findIndex(pattern => pattern.test(msg.cleanContent));
 	var backupFilter = false;
@@ -63,14 +71,12 @@ bot.on("messageCreate", async msg => {
 		backupFilter = true;
 	};
 	if (backupFilter == true) {
-		const guild = msg.channel.guild;
-		
 		if (msg.author.id == storm) { // don't attempt to ban storm for testing this lol
 			console.log("This test passed.");
 		}
 		else (msg.member.ban(0, "scammer").catch(console.error)) // ban the scammer 
 		
-		guild.channels.get(logsChannel).createMessage({ // create a message regarding the details
+		guild.channels.get(logId).createMessage({ // create a message regarding the details
 			embed: {
 				"description": `Banned a scammer! Loose match.`,
 				"color": 1715584,
@@ -89,11 +95,10 @@ bot.on("messageCreate", async msg => {
 		msg.delete().catch(console.error); // delete offending message. it's put after the log message to avoid any potential errors.
 	};
 	if (result > -1) {
-		const guild = msg.channel.guild;
 		let pattern = full[result];
 		// checks if the ID is from The Raven
 		if (msg.author.id == storm) {	
-			guild.channels.get(logsChannel).createMessage({
+			guild.channels.get(logId).createMessage({
 				embed: {
 					"description": `Testing successful. Matched result: \n\`\`\`\n${pattern.source}\n\`\`\``, // for testing filters
 					"color": 1715584,
@@ -113,7 +118,7 @@ bot.on("messageCreate", async msg => {
 		else {
 			msg.member.ban(0, "scammer").catch(console.error) // ban the scammer 
 			
-			guild.channels.get(logsChannel).createMessage({ // create a message regarding the details
+			guild.channels.get(logId).createMessage({ // create a message regarding the details
 				embed: {
 					"description": `Banned a scammer! Matched result: \n\n${pattern.source}`,
 					"color": 1715584,
