@@ -1,10 +1,12 @@
+const fs = require("fs");
 const Eris = require("eris");
 const bot = new Eris("token");
 
-const logsChannel = "582775837238099988" //"201369951775227904"; // #mod-logs
-const botChannel = "570160968643117077" //"517934719170641930"; // #staff-bot-channel
+const logsChannel = "201369951775227904" //"201369951775227904"; // #mod-logs
+const botChannel = "517934719170641930" //"517934719170641930"; // #staff-bot-channel
 
 const storm = "160648230781059073"; // @Storm Eagle
+const update = /^9b/ //update command
 
 const {small, full} = require("./regex.js"); // grab the regex filters
 
@@ -14,8 +16,37 @@ bot.on("messageCreate", async msg => {
     if (msg.author.bot) return;
     if (!msg.channel.guild) return;
     
-	// checks public messages against regex filters
 	if (msg.channel.id == logsChannel || msg.channel.id == botChannel) return
+	
+	if (msg.author.id == storm && msg.content.match(update)) {
+		let newRegex = msg.content.replace("9b ","");
+		full.push(newRegex);
+		
+		smallStr = "small = [\n" + small.map(patt => `    ${patt},\n`).join("") + "]\n"
+		fullStr = "full = [\n" + full.map(patt => `    ${patt},\n`).join("") + "]\n"
+		exportStr = "module.exports = {\n    small,\n    full\n}\n"
+		regexFile = `${smallStr}\n${fullStr}\n${exportStr}`
+		
+		fs.writeFile('regex.js', regexFile, (err) => {
+			if (err) {
+			console.error(err)
+			return
+			}
+		});
+		
+		const guild = msg.channel.guild;
+		guild.channels.get(channelId).createMessage({
+			embed: {
+				"description": `Update successful. Reload Nine Ball.`,
+				"color": 1715584,
+				"footer": {
+					"icon_url": "https://vignette.wikia.nocookie.net/armoredcore/images/0/02/Hustler_One_Emblem.jpg/revision/latest?cb=20140615012341",
+					"text": "Hustler One"
+				}
+			}
+		});
+		process.exit(0);
+	};
 	
 	let result = full.findIndex(pattern => pattern.test(msg.cleanContent));
 	var backupFilter = false;
