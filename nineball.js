@@ -1,6 +1,6 @@
 const fs = require("fs");
 const Eris = require("eris");
-const bot = new Eris("NTc0NTY5OTc0NDkzMDg1NzA2.XM7T_A.kqZj9lauLl7X90T634j-36tbPiw");
+const bot = new Eris("token");
 
 const logChannels = {
 	"195214576571121664": "201369951775227904", //mega man server ID
