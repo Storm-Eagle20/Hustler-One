@@ -1,23 +1,33 @@
 const fs = require("fs");
 const Eris = require("eris");
 const bot = new Eris("token");
+bot.on('error', console.log);
 
 const logChannels = {
 	"195214576571121664": "201369951775227904", //mega man server ID
 	"508647842592587776": "508655085648216075", //fanworks server ID
-	"176362550311518208": "363004532311064578" //ps homebrew server ID
+	"176362550311518208": "363004532311064578", //ps homebrew server ID
+	"297536872589295626": "387117292053463041"  //xbox homebrew server ID
 };
 
 const modRoles = [
 	"195226842322567168", //mega man moderator role
 	"509176940326944772", //fanworks moderator role
-	"840612813756039248" //ps homebrew moderator role
+	"840612813756039248", //ps homebrew moderator role
+	"831716416134578176"  //xbox homebrew moderator role
 ]
 
 const storm = "160648230781059073"; // @Storm Eagle
-const update = /^9b/ //update command
+const rhythm = "211938031643525131"; // @Rhythm
 
-const {small, full} = require("./regex.js"); // grab the regex filters
+const update = /^9b `(.+)`( \-generic)?/ //update command
+const generic = /\-generic/ //flag for the update command that updates the generic regex filter
+
+const {small, full} = require("./regex.js");
+// grab the regex filters. 
+// small is the generic filter, full is the targeted filter.
+
+//let messageCount = 0
 
 // checks if the message isn't from the bot itself and not
 // from a private message
@@ -25,10 +35,30 @@ bot.on("messageCreate", async msg => {
     if (msg.author.bot) return;
     if (!msg.channel.guild) return;
 	
-	if (msg.author.id == storm && msg.content.match(update)) {
+	var regexType = "test"; 
+	//this is a variable used 
+	//in an embed when Nine Ball is updated.
+	
+	let trustedUser = false;
+	if (msg.author.id == storm || rhythm) {
+		trustedUser = true; //checks if message is from a trusted user
+	}
+	
+	if (trustedUser == true && msg.content.match(update)) { //only allow updates from trusted users
 		let channelId = msg.channel.id;
-		let newRegex = msg.content.replace("9b ","");
-		full.push(newRegex);
+		let updateContent = msg.content.replace(update,'$1');
+		
+		if (msg.content.match(generic)) {
+			let genericUpdate = updateContent.replace('$1$2','$1');
+			let newRegex = new RegExp(genericUpdate);
+			small.push(newRegex); //push to generic filter if flag is used
+			regexType = "generic";
+		}
+		else {
+			let newRegex = new RegExp(updateContent);
+			full.push(newRegex); //push to targeted filter otherwise
+			regexType = "targeted";
+		};
 		
 		smallStr = "small = [\n" + small.map(patt => `    ${patt},\n`).join("") + "]\n"
 		fullStr = "full = [\n" + full.map(patt => `    ${patt},\n`).join("") + "]\n"
@@ -45,7 +75,7 @@ bot.on("messageCreate", async msg => {
 		const guild = msg.channel.guild;
 		guild.channels.get(channelId).createMessage({
 			embed: {
-				"description": `Update successful. Reload Nine Ball.`,
+				"description": `Update successful. New ${regexType} regular expression added.`,
 				"color": 1715584,
 				"footer": {
 					"icon_url": "https://vignette.wikia.nocookie.net/armoredcore/images/0/02/Hustler_One_Emblem.jpg/revision/latest?cb=20140615012341",
@@ -56,6 +86,9 @@ bot.on("messageCreate", async msg => {
 		return
 	};
 	const guild = msg.channel.guild;
+	
+	//messageCount += 1
+	//console.log(`There have been ${messageCount} messages scanned.`);
 	
 	let moderators = msg.member.roles;
 	let modValue = moderators.filter(roles => modRoles.includes(roles));
@@ -86,6 +119,8 @@ bot.on("messageCreate", async msg => {
 			console.log("This test passed.");
 		}
 		else (msg.member.ban(0, "scammer").catch(console.error)) // ban the scammer 
+		
+		//console.log("Banned a scammer.");
 		
 		guild.channels.get(logId).createMessage({ // create a message regarding the details
 			embed: {
@@ -128,6 +163,8 @@ bot.on("messageCreate", async msg => {
 		}
 		else {
 			msg.member.ban(0, "scammer").catch(console.error) // ban the scammer 
+			
+			//console.log("Banned a scammer.");
 			
 			guild.channels.get(logId).createMessage({ // create a message regarding the details
 				embed: {
