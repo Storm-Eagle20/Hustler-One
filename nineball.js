@@ -23,6 +23,8 @@ const rhythm = "211938031643525131"; // @Rhythm
 const update = /^9b `(.+)`( \-generic)?/ //update command
 const generic = /\-generic/ //flag for the update command that updates the generic regex filter
 
+const tenor = /^https:\/\/tenor\.com/m //tenor gifs frequently have false positives
+
 const {small, full} = require("./regex.js");
 // grab the regex filters. 
 // small is the generic filter, full is the targeted filter.
@@ -34,6 +36,7 @@ const {small, full} = require("./regex.js");
 bot.on("messageCreate", async msg => {
     if (msg.author.bot) return;
     if (!msg.channel.guild) return;
+	if (msg.content.match(tenor)) return; //don't ban for tenor links...
 	
 	var regexType = "test"; 
 	//this is a variable used 
@@ -44,21 +47,21 @@ bot.on("messageCreate", async msg => {
 		trustedUser = true; //checks if message is from a trusted user
 	}
 	
-	if (trustedUser == true && msg.content.match(update)) { //only allow updates from trusted users
+	let match = msg.content.match(update)
+	
+	if (trustedUser && match) { //only allow updates from trusted users
 		let channelId = msg.channel.id;
 		let updateContent = msg.content.replace(update,'$1');
 		
-		if (msg.content.match(generic)) {
-			let genericUpdate = updateContent.replace('$1$2','$1');
-			let newRegex = new RegExp(genericUpdate);
-			small.push(newRegex); //push to generic filter if flag is used
+		let newRegex = new RegExp(match[1])
+		if (match[2]) {
+			small.push(newRegex) //push to generic regex filter
 			regexType = "generic";
-		}
+		} 
 		else {
-			let newRegex = new RegExp(updateContent);
-			full.push(newRegex); //push to targeted filter otherwise
+			full.push(newRegex) //push to targeted regex filter otherwise
 			regexType = "targeted";
-		};
+		}
 		
 		smallStr = "small = [\n" + small.map(patt => `    ${patt},\n`).join("") + "]\n"
 		fullStr = "full = [\n" + full.map(patt => `    ${patt},\n`).join("") + "]\n"
