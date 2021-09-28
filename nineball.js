@@ -15,7 +15,7 @@ const rhythm = "211938031643525131"; // @Rhythm
 const tenor = /^https:\/\/tenor\.com/m //tenor gifs frequently have false positives
 
 const {small, full} = require ("./regex.js");
-const {nbCommands} = require ("./listing.js");
+const {nbCommands} = require ("./commands.js");
 const {saveRegex, messageScan} = require ("./functions.js")
 const {storm, logChannels} = require ("./constants.js")
 
@@ -35,7 +35,7 @@ bot.on("messageCreate", async msg => {
 	let match = msg.content.match(update)
 	
 	if (trustedUser && match) { //only allow updates from trusted users
-		nbCommands(msg); //go through command as listed in listing.js
+		nbCommands(msg); //go through command as listed in commands.js
 		return
 	};
 	
