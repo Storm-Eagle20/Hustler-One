@@ -2,7 +2,7 @@ const fs = require("fs");
 const {small, full} = require("./regex.js");
 const {storm, logChannels} = require("./constants.js")
 
-function saveRegex() { //function to write to file
+function saveRegex() {
 	smallStr = "small = [\n" + small.map(patt => `    ${patt},\n`).join("") + "]\n"
 	fullStr = "full = [\n" + full.map(patt => `    ${patt},\n`).join("") + "]\n"
 	exportStr = "module.exports = {\n    small,\n    full\n}\n"
@@ -16,7 +16,12 @@ function saveRegex() { //function to write to file
 	});
 };
 
-function messageScan(msg) { //function to scan messages for scams
+function messageScan(msg) {
+	let server = msg.guild;
+	let logId = logChannels[guild.id]
+	if (!logId) return  // not in a configured server
+	let logChannel = guild.channels.get(logId)
+	
 	let result = full.findIndex(pattern => pattern.test(msg.cleanContent));
 	var backupFilter = false;
 	let count = 0
