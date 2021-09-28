@@ -147,9 +147,9 @@ function nbCommands(msg) {
 			return
 		}
 	}
-	else if (nbCommand[1] == undefined && nbCommand[2] == undefined) { //"undefined" means the capture groups do not exist
+	else if (nbCommand[4]) { //update the bot
 		console.log("Matched the update filter.")
-		if (nbCommand[3] == "``" || "") return; //don't place a blank regex filter, this results in false autobans...
+		if (nbCommand[3] == "``" || nbCommand[3] == "") return; //don't place a blank regex filter, this results in false autobans...
 		let newRegex = new RegExp(nbCommand[4])
 		if (nbCommand[5]) {
 			small.push(newRegex) //push to generic regex filter
@@ -175,7 +175,10 @@ function nbCommands(msg) {
 		});	
 		return
 	}
-	else return;	
+	else {
+		console.log(nbCommand[4]) 
+		return;
+	}		
 }	
 
 module.exports = {
