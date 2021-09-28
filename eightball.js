@@ -42,20 +42,15 @@ bot.on("messageCreate", async msg => {
 		nbCommands(msg); //go through command as listed in listing.js
 		return
 	};
-	const guild = msg.channel.guild;
-	//messageCount += 1
-	//console.log(`There have been ${messageCount} messages scanned.`);
 	
 	let moderators = msg.member.roles;
 	let modValue = moderators.filter(roles => modRoles.includes(roles));
 	if (msg.author.id != storm && modValue != "") return;
 	
-	let server = msg.guild;
-	let logId = logChannels[guild.id]
-	if (!logId) return  // not in a configured server
-	let logChannel = guild.channels.get(logId)
-	
-	messageScan(msg); //scan messages for scams in functions.js
+	if (!match) {
+		messageScan(msg); //scan messages for scams in functions.js
+	}
+	else return;
 });
 
 bot.connect();
