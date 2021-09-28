@@ -14,9 +14,12 @@ function saveRegex() {
 		return
 		}
 	});
+	return
 };
 
 function messageScan(msg) {
+	let guild = msg.channel.guild;
+	
 	let server = msg.guild;
 	let logId = logChannels[guild.id]
 	if (!logId) return  // not in a configured server
@@ -45,8 +48,6 @@ function messageScan(msg) {
 		
 		//console.log("Banned a scammer.");
 		
-		const guild = msg.channel.guild;
-		
 		guild.channels.get(logChannels).createMessage({ // create a message regarding the details
 			embed: {
 				"description": `Banned a scammer! Loose match.`,
@@ -69,7 +70,6 @@ function messageScan(msg) {
 	if (result > -1) {
 		let pattern = full[result];
 		// checks if the ID is from The Raven
-		const guild = msg.channel.guild;
 		
 		if (msg.author.id == storm) {	
 			guild.channels.get(logChannels).createMessage({
