@@ -1,7 +1,7 @@
 const {small, full} = require("./regex.js");
 const {saveRegex, messageScan} = require("./functions.js");
 
-const update = /^8b (commands|list|remove |modify )?([1-9][0-9]*)?( `(.+)`)?( \-generic)?/ //update command, explained below
+const update = /^8b(?: (commands|list|remove|modify))?(?: ([1-9][0-9]*))?(?: `(.+)`)?( \-generic)?/ //update command, explained below
 
 //match[1] = (commands|list|remove |modify )
 //match[2] = ([1-9][0-9]*)
@@ -24,9 +24,10 @@ function nbCommands(msg) {
 	let nbCommand = msg.content.match(update)
 	if (!nbCommand) return;
 	
+	let guild = msg.channel.guild;
+	
 	if (nbCommand[1] == "commands") { //"9b commands"
 		console.log("Matched commands.")
-		const guild = msg.channel.guild;
 		guild.channels.get(channelId).createMessage({
 			embed: {
 				"description": `The commands Nine Ball has are as follows:`,
@@ -78,8 +79,7 @@ function nbCommands(msg) {
 	}
 	else if (nbCommand[1] == "list") {
 		console.log("Matched list.")
-		const guild = msg.channel.guild;
-		if (nbCommand[5]) { //generic regex filter 
+		if (nbCommand[4]) { //generic regex filter 
 			let indexLength = small.length;
 			let lines = small.map((regex, index) => `${index}: ${regex}`)
 			let n = Math.ceil(lines.length / 20)
@@ -102,11 +102,10 @@ function nbCommands(msg) {
 			return
 		}
 	}
-	else if (nbCommand[1] == "remove ") {
+	else if (nbCommand[1] == "remove") {
 		console.log("Matched remove.")
-		const guild = msg.channel.guild;
 		indexNumber = nbCommand[2];
-		if (nbCommand[5]) { //generic regex splicing
+		if (nbCommand[4]) { //generic regex splicing
 			if (nbCommand[2] > small.length) return;
 			if (nbCommand[2] < 0) return; //check for invalid values
 			small.splice(indexNumber, 1); //remove specified value
@@ -123,18 +122,17 @@ function nbCommands(msg) {
 			return
 		}
 	}
-	else if (nbCommand[1] == "modify ") {
+	else if (nbCommand[1] == "modify") {
 		console.log("Matched modify.")
-		const guild = msg.channel.guild;
 		indexNumber = nbCommand[2];
-		let regexChanges = nbCommand[4];
+		let regexChanges = nbCommand[3];
 		if (nbCommand[3] == "``" || "") return; //don't place a blank regex filter, this results in false autobans...
 		
-		if (nbCommand[5]) { //generic regex editing
+		if (nbCommand[4]) { //generic regex editing
 			if (nbCommand[2] > small.length) return;
 			if (nbCommand[2] < 0) return; //check for invalid values
 			small.splice(indexNumber, 1, regexChanges); //remove specified value
-			saveRegex();
+			saveRegex(small);
 			guild.channels.get(channelId).createMessage("Generic filter updated.")
 			return
 		}
@@ -142,16 +140,15 @@ function nbCommands(msg) {
 			if (nbCommand[2] > full.length) return;
 			if (nbCommand[2] < 0) return; //check for invalid values
 			full.splice(indexNumber, 1, regexChanges); //remove specified value
-			saveRegex();
+			saveRegex(full);
 			guild.channels.get(channelId).createMessage("Targeted filter updated.")
 			return
 		}
 	}
-	else if (nbCommand[4]) { //update the bot
+	else if (nbCommand[3]) { //update the bot
 		console.log("Matched the update filter.")
-		if (nbCommand[3] == "``" || nbCommand[3] == "") return; //don't place a blank regex filter, this results in false autobans...
-		let newRegex = new RegExp(nbCommand[4])
-		if (nbCommand[5]) {
+		let newRegex = new RegExp(nbCommand[3])
+		if (nbCommand[4]) {
 			small.push(newRegex) //push to generic regex filter
 			regexType = "generic";
 			saveRegex(small); //save to file
@@ -162,7 +159,6 @@ function nbCommands(msg) {
 			saveRegex(full); //save to file
 		}
 		
-		const guild = msg.channel.guild;
 		guild.channels.get(channelId).createMessage({
 			embed: {
 				"description": `Update successful. New ${regexType} regular expression added.`,
@@ -176,7 +172,7 @@ function nbCommands(msg) {
 		return
 	}
 	else {
-		console.log(nbCommand[4]) 
+		console.log(nbCommand[3]) 
 		return;
 	}		
 }	
