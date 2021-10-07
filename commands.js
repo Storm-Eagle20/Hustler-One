@@ -1,12 +1,12 @@
 const {small, full} = require("./regex.js");
-const {saveRegex, messageScan} = require("./functions.js");
+const {saveRegex, messageScan, errorMessage, embedList, postMessage} = require("./functions.js");
 
-const update = /^9b(?: (commands|list|remove|modify))?(?: ([1-9][0-9]*))?(?: `(.+)`)?( \-generic)?/ //update command, explained below
+const update = /^9b(?: (commands|list|remove|modify))?(?: ([1-9][0-9]*|0))?(?: `(.+)`)?( \-generic)?/ //update command, explained below
 
-//nbCommand[1] = (commands|list|remove|modify)
-//nbCommand[2] = ([1-9][0-9]*)
-//nbCommand[3] = (.+)
-//nbCommand[4] = ( \-generic)
+//nbCommand[1] is (commands|list|remove|modify)
+//nbCommand[2] is ([1-9][0-9]*)
+//nbCommand[3] is (.+)
+//nbCommand[4] is ( \-generic)
 
 let regexType = "test"; 
 //this is a variable used 
@@ -28,9 +28,13 @@ function nbCommands(msg) {
 				"color": 8652567,
 				"footer": {
 					"icon_url": "https://vignette.wikia.nocookie.net/armoredcore/images/0/02/Hustler_One_Emblem.jpg/revision/latest?cb=20140615012341",
-					"text": "Hustler One"
+					"text": "Combat mode is now engaged."
 				},
 				"fields": [ 
+					{
+					"name": `9b disable`,
+					"value": `Disables all moderation from Nine Ball. Use command again to re-enable.`
+					},
 					{
 					"name": `9b commands`,
 					"value": `Displays this message.`
@@ -71,95 +75,129 @@ function nbCommands(msg) {
 		})
 		return
 	}
-	else if (nbCommand[1] == "list") {
+	else if (nbCommand[1] == "list") { //list the regex
 		if (nbCommand[4]) { //generic regex filter 
 			let indexLength = small.length;
 			let lines = small.map((regex, index) => `${index}: ${regex}`)
-			let n = Math.ceil(lines.length / 20)
-			for (let i = 0; i < n; i++) { //can't go over 20 lines due to text cap Discord imposes
-				let response = lines.slice(i*20, (i+1)*20).join("\n")
-				response = "```\n" + response + "\n```" //three backticks lets the regex be properly displayed
-				guild.channels.get(channelId).createMessage(response);
-			}
+			embedList(guild, channelId, indexLength, lines);
 			return
 		}
 		else {
 			let indexLength = full.length; //targeted regex filter
 			let lines = full.map((regex, index) => `${index}: ${regex}`)
-			let n = Math.ceil(lines.length / 20)
-			for (let i = 0; i < n; i++) { //can't go over 20 lines due to text cap Discord imposes
-				let response = lines.slice(i*20, (i+1)*20).join("\n")
-				response = "```\n" + response + "\n```" //three backticks lets the regex be properly displayed
-				guild.channels.get(channelId).createMessage(response);
-			}
+			embedList(guild, channelId, indexLength, lines);
 			return
 		}
 	}
-	else if (nbCommand[1] == "remove") {
+	else if (nbCommand[1] == "remove") { //remove a regex filter
 		indexNumber = nbCommand[2];
 		if (nbCommand[4]) { //generic regex splicing
-			if (nbCommand[2] > small.length) return;
-			if (nbCommand[2] < 0) return; //check for invalid values
+			let smallSize = parseInt(small.length)
+
+			if (indexNumber > smallSize) {
+				errorMessage(channelId, guild);
+				return
+			}
+			if (indexNumber < 0) {
+				errorMessage(channelId, guild);
+				return //check for invalid values
+			}
 			small.splice(indexNumber, 1); //remove specified value
 			saveRegex();
-			guild.channels.get(channelId).createMessage("Generic filter removed.")
+			regexType = "Generic filter removed."
+			postMessage(guild, channelId, regexType); //post confirmation message
 			return
 		}
 		else { //targeted regex splicing
-			if (nbCommand[2] > full.length) return;
-			if (nbCommand[2] < 0) return; //check for invalid values
+			let fullSize = parseInt(full.length)
+			if (indexNumber > fullSize) {
+				errorMessage(channelId, guild);
+				return
+			}
+			if (indexNumber < 0) {
+				errorMessage(channelId, guild);
+				return //check for invalid values
+			}
 			full.splice(indexNumber, 1); //remove specified value
 			saveRegex();
-			guild.channels.get(channelId).createMessage("Targeted filter removed.")
+			regexType = "Targeted filter removed."
+			postMessage(guild, channelId, regexType); //post confirmation message
 			return
 		}
 	}
-	else if (nbCommand[1] == "modify") {
+	else if (nbCommand[1] == "modify") { //modify a regex filter
 		indexNumber = nbCommand[2];
-		if (nbCommand[3] == "``" || "") return; //don't place a blank regex filter, this results in false autobans...
-		
 		if (nbCommand[4]) { //generic regex editing
-			let regexChanges = new RegExp(nbCommand[3], "g")
-			if (nbCommand[2] > small.length) return;
-			if (nbCommand[2] < 0) return; //check for invalid values
-			small.splice(indexNumber, 1, regexChanges); //remove specified value
+			try {
+				let regexChanges = new RegExp(nbCommand[3], "g")
+				let smallSize = parseInt(small.length)
+
+				if (indexNumber > smallSize) {
+					errorMessage(channelId, guild);
+					return
+				}
+				if (indexNumber < 0) {
+					errorMessage(channelId, guild);
+					return //check for invalid values
+				}
+				small.splice(indexNumber, 1, regexChanges); //remove specified value
+			}
+			catch (error) {
+				errorMessage(channelId, guild); //account for undefined/errors
+				return
+			}
 			saveRegex(small);
-			guild.channels.get(channelId).createMessage("Generic filter updated.")
+			regexType = "Generic filter updated."
+			postMessage(guild, channelId, regexType); //post confirmation message
 			return
 		}
 		else { //targeted regex editing
-			let regexChanges = new RegExp(nbCommand[3], "g")
-			if (nbCommand[2] > full.length) return;
-			if (nbCommand[2] < 0) return; //check for invalid values
-			full.splice(indexNumber, 1, regexChanges); //remove specified value
+			try {
+				let regexChanges = new RegExp(nbCommand[3], "g")
+				let smallSize = parseInt(full.length)
+
+				if (indexNumber > smallSize) {
+					errorMessage(channelId, guild);
+					return
+				}
+				if (indexNumber < 0) {
+					errorMessage(channelId, guild);
+					return //check for invalid values
+				}
+					full.splice(indexNumber, 1, regexChanges); //remove specified value
+				}
+				catch (error) {
+					errorMessage(channelId, guild); //account for undefined/errors
+					return
+				}
 			saveRegex(full);
-			guild.channels.get(channelId).createMessage("Targeted filter updated.")
+			regexType = "Targeted filter updated."
+			postMessage(guild, channelId, regexType); //post confirmation message
 			return
 		}
 	}
-	else if (nbCommand[3]) { //update the bot
-		let newRegex = new RegExp(nbCommand[3])
+	else if (nbCommand[3]) { //update the regex filter with new regular expressions
+		let newRegex = null;
+		try {
+			newRegex = new RegExp(nbCommand[3], "i")
+		}
+		catch (error) {
+			errorMessage(channelId, guild); //account for undefined/errors
+			return
+		}
 		if (nbCommand[4]) {
 			small.push(newRegex) //push to generic regex filter
-			regexType = "generic";
+			regexType = "Update successful. New generic regular expression added.";
 			saveRegex(small); //save to file
 		}
 		else {
 			full.push(newRegex) //push to targeted regex filter
-			regexType = "targeted";
+			regexType = "Update successful. New targeted regular expression added.";
 			saveRegex(full); //save to file
 		}
 		
-		guild.channels.get(channelId).createMessage({
-			embed: {
-				"description": `Update successful. New ${regexType} regular expression added.`,
-				"color": 1715584,
-				"footer": {
-					"icon_url": "https://vignette.wikia.nocookie.net/armoredcore/images/0/02/Hustler_One_Emblem.jpg/revision/latest?cb=20140615012341",
-					"text": "Hustler One"
-				}
-			}
-		});	
+		postMessage(guild, channelId, regexType); //post confirmation message
+		
 		return
 	}
 	else return;
