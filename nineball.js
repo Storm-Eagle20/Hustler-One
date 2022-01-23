@@ -1,5 +1,14 @@
+const {small, full} = require ("./regex.js");
+const {nbCommands} = require ("./commands.js");
+const {saveRegex, messageScan, shutdown, kickMember, noKick, directMessage, nbDisabled} = require ("./functions.js")
+const {storm, logChannels} = require ("./constants.js")
+const token = require ("./config.json")
+
 const Eris = require("eris");
-const bot = new Eris("token", {
+const bot = new Eris(
+//two different tokens are used and are commented out respectively. eight is canary, nine is stable.
+//token.nineToken, { //Nine Ball
+token.eightToken, { //Eight Ball
 	intents: [
 		"guilds",
 		"guildMessages",
@@ -14,6 +23,7 @@ const modRoles = [
 	"509176940326944772", //fanworks moderator role
 	"840612813756039248", //ps homebrew moderator role
 	"831716416134578176"  //xbox homebrew moderator role
+	
 ]
 
 const update = /^9b/ //command for updating
@@ -26,11 +36,6 @@ const ONE_WEEK = 1000 * 60 * 60 * 24 * 7
 
 const url = /^(https:\/\/|www\.)/ //don't check messages that only have urls
 
-const {small, full} = require ("./regex.js");
-const {nbCommands} = require ("./commands.js");
-const {saveRegex, messageScan, shutdown, kickMember, directMessage} = require ("./functions.js")
-const {storm, logChannels} = require ("./constants.js")
-
 bot.on("guildMemberAdd", async (guild, member) => { //kick users whose accounts are too young
 	let age = new Date() - member.createdAt
 	
@@ -38,8 +43,13 @@ bot.on("guildMemberAdd", async (guild, member) => { //kick users whose accounts 
 	let dmContents = "You have been kicked from this server as your account is too new. This is for raid/alt account prevention. If this was a mistake, please rejoin later."
 	
 	if (age < ONE_WEEK) {
-		await directMessage(dmContents, user) //dm the user
-		kickMember(guild, member);
+		if (!disabled) { 
+			await directMessage(dmContents, user) //dm the user
+			kickMember(guild, member);
+		}
+		else { //do not kick if Nine Ball is disabled.. avoids potential issues
+			noKick(guild, member)
+		}
 	}
 });
 bot.on("messageCreate", async msg => {
@@ -103,12 +113,11 @@ bot.on("messageCreate", async msg => {
 	if (disabled == true) {
 		let guild = msg.channel.guild;
 		let logId = logChannels[guild.id]
-		guild.channels.get(logId).createMessage("Nine Ball is currently disabled. A message was posted but it was not scanned.")
-		return
+		nbDisabled(guild, logId)
 	} 
 
 	if (msg.author.id != storm && modValue != "") return;
-	
+
 	messageScan(msg); //scan messages for scams in functions.js
 	return;
 });
